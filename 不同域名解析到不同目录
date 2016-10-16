@@ -1,0 +1,34 @@
+1)打开/opt/lampp/etc/httpd.conf,找到
+	# Virtual hosts
+	#Include conf/extra/httpd-vhosts.conf
+改为:
+	# Virtual hosts
+	Include conf/extra/httpd-vhosts.conf
+
+2）配置vhost文件，打开etc/extra/httpd-info.conf,并添加：
+<VirtualHost *:80>
+    ServerAdmin xxx@qq.com
+    DocumentRoot "/opt/lampp/htdocs/aaa.com"
+    ServerName www.aaa.com
+    ServerAlias www.aaa.example.com
+    ErrorLog "logs/aaa.example.com-error.log"
+    CustomLog "logs/aaa.example.com-access.log" common
+</VirtualHost>
+
+
+<VirtualHost *:80>
+    ServerAdmin xxx@qq.com
+    DocumentRoot "/opt/lampp/htdocs/bbb.com"
+    ServerName www.bbb.com
+    ServerAlias www.bbb.example.com
+    ErrorLog "logs/bbb.example.com-error.log"
+    CustomLog "logs/bbb.example.com-access.log" common
+</VirtualHost>
+
+3）修改/etc/hosts文件，做好域名映射
+192.168.1.16       www.aaa.com
+192.168.1.16       www.bbb.com
+
+4）重启lampp
+
+
