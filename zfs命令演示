@@ -1,0 +1,64 @@
+安装 ZFS-FUSE
+$ sudo apt-get install zfs-fuse
+
+清单 1. 使用 ZFS-FUSE 的设置
+$ mkdir zfstest
+$ cd zfstest
+$ dd if=/dev/zero of=disk1.img bs=64M count=1
+$ dd if=/dev/zero of=disk2.img bs=64M count=1
+$ dd if=/dev/zero of=disk3.img bs=64M count=1
+$ dd if=/dev/zero of=disk4.img bs=64M count=1
+$ ls
+$ sudo losetup /dev/loop0 ./disk1.img 
+$ sudo losetup /dev/loop1 ./disk2.img 
+$ sudo losetup /dev/loop2 ./disk3.img 
+$ sudo losetup /dev/loop3 ./disk4.img 
+$
+
+清单 2. 创建 ZFS 池
+$ sudo zpool create myzpool raidz /dev/loop0 /dev/loop1 /dev/loop2 /dev/loop3
+$ sudo zfs list
+
+清单 3. 查看存储池的属性
+$ sudo zfs get all myzpool
+
+清单 4. 演示 ZFS 压缩
+$ sudo zfs create myzpool/myzdev
+$ sudo zfs list
+$ sudo zfs set compression=on myzpool/myzdev
+$ ls /myzpool/myzdev/
+$ sudo cp ../linux-2.6.34/Documentation/devices.txt /myzpool/myzdev/
+$ ls -la ../linux-2.6.34/Documentation/devices.txt 
+$ ls -la /myzpool/myzdev/
+$ du -ah /myzpool/myzdev/
+$ sudo zfs get compressratio myzpool
+
+清单 5. 检查池状态
+$ sudo zpool status myzpool
+
+清单 6. 损坏 ZFS 池
+$ dd if=/dev/zero of=disk4.img bs=64M count=1
+
+清单 7. 清理并检查池
+$ sudo zpool scrub myzpool
+$ sudo zpool status myzpool
+$ wc -l /myzpool/myzdev/devices.txt
+
+清单 8. 使用 zpool replace 修复池
+$ dd if=/dev/zero of=disk5.img bs=64M count=1
+$ sudo losetup /dev/loop4 ./disk5.img 
+$ sudo zpool replace myzpool loop3 loop4
+$ sudo zpool status myzpool
+$ sudo zpool scrub myzpool
+$ sudo zpool status myzpool
+
+清单 9. 开启更多功能
+sudo zfs set dedup=on myzpool/myzdev
+sudo zfs set compression=on myzpool/myzdev
+
+
+
+
+
+
+

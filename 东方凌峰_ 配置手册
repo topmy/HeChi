@@ -1,0 +1,416 @@
+==============================================================
+  *       Ubuntu安装后配置手册——东方凌峰专用             *
+  *       http://wiki.ubuntu.org.cn/Qref/Karmic            *
+==============================================================
+
+#1 设置root密码
+sudo passwd root
+
+#2 添加进入Windows启动菜单
+sudo gedit  /boot/grub/grub.cfg
+添加以下部分：
+************************************************
+menuentry "Access to other systems" {
+       root (hd0,1)
+       chainloader  +1
+}
+************************************************
+
+#3 自动挂载WINDOS分区：
+# 查看UUID：sudo blkid
+sudo -i
+sudo mkdir /media/System /media/Inst /media/Office /media/Soft /media/Down #先创建目录
+echo "/dev/sda1  /media/System  ntfs  auto,user,nls=utf8,umask=0   0 0" >>/etc/fstab
+echo "/dev/sda5  /media/Inst  ntfs  auto,user,nls=utf8,umask=0   0 0 ">>/etc/fstab
+echo "/dev/sda6  /media/Office  ntfs  auto,user,nls=utf8,umask=0   0 0 ">>/etc/fstab
+echo "/dev/sda7  /media/Soft  ntfs  auto,user,nls=utf8,umask=0   0 0 ">>/etc/fstab
+echo "/dev/sda8  /media/Down  ntfs  auto,user,nls=utf8,umask=0   0 0 ">>/etc/fstab
+
+#4   不开机重新挂载fstab
+sudo mount -a
+
+#5 创建快捷键
+文本编辑   gedit
+打开文件夹  nautilus /media/Down
+打开终端   gnome-terminal
+监视器     gnome-system-monitor
+＃超管打开文件夹  
+sudo nautilus
+
+#6 从服务器上同步时间
+sudo ntpdate ntp.ubuntu.com
+sudo ntpdate time.nist.gov
+
+#7 防止系统修改硬件时间
+sudo gedit /etc/default/rcS 将 "UTC=yes" 改为 "UTC=no"
+或：sudo grep -rIl "UTC=yes" /etc/default/rcS --color=never | xargs sed -i "s/UTC=yes/UTC=no/g"
+
+#8 递归式创建一些嵌套目录
+mkdir -pv /tmp/xxs/dsd/efd
+
+#9 递归式删除嵌套目录
+rm -fr /tmp/xxs
+
+#10 备份当前系统安装的所有包的列表
+dpkg --get-selections | grep -v deinstall > ~/somefile
+
+#11 从上面备份的安装包的列表文件恢复所有包
+sudo dpkg --set-selections < ~/somefile
+sudo dselect
+
+#12  系统升级
+sudo apt-get update
+sudo apt-get upgrade
+
+#13 批处理编程(此文件必须保存到 /bin/ 目录下) 
+***********************************************************
+第一步:运行编辑器：sudo gedit
+第二步:编辑文件头：#!/bin/sh
+第三步:保存到：/usr/bin/
+第四步:授予权限：sudo chmod 777 /usr/bin/Clear
+***********************************************************
+
+#14 复制文件或者目录
+cp -av 原文件或原目录 新文件或新目录
+
+#15 添加右键菜单“以管理员身份打开”
+sudo apt-get install nautilus-gksu
+
+#16  安装五笔输入法：
+sudo add-apt-repository ppa:wengxt/fcitx-nightly #最新的版本都不需要
+sudo apt-get update
+sudo apt-get install fcitx fcitx-config-gtk fcitx-sunpinyin
+sudo apt-get install fcitx-table-all #同时安装其他码表
+im-switch -s fcitx -z default  #设为默认输入法，一般不需要，除非系统有多个输入法
+
+#17  同步更新文件
+sudo cp -a -u -v 源文件夹 目标文件夹
+
+#18  恢复GRUB菜单
+************************************************
+sudo -i             				#获取管理员权限
+mount /dev/sda4 /mnt    			#挂载linux分区到/mnt目录
+grub-install --root-directory=/mnt/ /dev/sda 	#从/mnt安装grub到磁盘
+umount /mnt
+************************************************
+
+#19  设置时间
+date -s HH:MM
+
+#20  挂载光盘的乱码问题
+sudo gedit /etc/fstab 
+将：/dev/scd0       /media/cdrom0   udf,iso9660 user,noauto,exec 0       0 
+修改为：/dev/scd0       /media/cdrom0   udf,iso9660 user,noauto,exec,iocharset=utf8 0       0
+
+#20 打包制作deb安装程序
+dpkg -X dd.deb dd/         #是将 deb 包的内容文件释放到dd/
+dpkg -e dd.deb dd/         #是将 deb 包的控制信息释放到dd/
+dpkg -b dd/ dd.deb         #打包dd目录下的文件为dd.deb
+deb 包解开后分两部分：一部分是控制信息，在 DEBIAN 目录下；一部分是安装内容，在 usr 目录下。
+
+#21  把终端加到右键菜单
+sudo apt-get install nautilus-open-terminal
+
+#22  查找并删除*~文件
+find /media/ -name "*~" -exec rm {} \;
+
+#23  AVAST更新后不能使用的问题
+sudo sysctl -w kernel.shmmax=128000000
+
+#24 解决终端默认路径为根目录的问题
+gedit ~/.bashrc
+然后在第一行加入以下并换行保存：
+cd /media/Down
+
+#25 设置axel下载默认值
+sudo -i
+echo "alternate_output = 1">>/etc/axelrc
+echo "num_connections = 10">>/etc/axelrc
+
+#26  简单搭建LAMP服务器环境
+sudo apt-get install tasksel
+sudo tasksel
+
+#27 将目录写入ISO文件：
+mkisofs -o iso文件.iso “目录”
+
+#28 将光盘写入ISO文件：
+cp /dev/cdrom iso文件.iso
+
+#29 让qq不再自动退出
+sudo gedit /usr/bin/qq
+清空原文件并复制以下代码：
+******************************************
+#!/bin/sh
+export GDK_NATIVE_WINDOWS=true
+cd /usr/share/tencent/qq/
+./qq
+******************************************
+
+#30 中文显示问题,打开网页把生成的.fonts.conf的内容复制到： ~/.fonts.conf
+http://wenq.org/cloud/fcdesigner_local.html
+
+#31  安装电影播放机插件
+打开Ubuntu软件中心，搜索 Gstreamer
+需安装的项目有：
+Gstreamer附加组件
+Gstreamer ffmpeg视频插件
+mms、wavpack、quicktime和musepack的Gstreamer插件
+aac、xvid、mpeg2和faad的Gstreamer插件
+
+#32  解决启动时屏幕闪烁
+第一步：sudo gedit /etc/default/grub  
+将 #GRUB_GFXMODE=640×480 这一行替换为：GRUB_GFXMODE=800x600
+第二步：sudo gedit /etc/grub.d/00_header
+在 set gfxmode=${GRUB_GFXMODE} 这行下面添加新行内容为:  set gfxpayload=keep
+第三步：sudo update-grub
+
+#33  解决耳机插入后喇叭一起响的问题
+打开新立得，安装gnome-alsamixer，运行，在“Headphone Jack Sense”打勾
+
+#34  加快系统启动速度
+sudo gedit /etc/fstab
+找到以下所有类似的语句:# /dev/sda6 UUID=5342-DSEF /media/sda6 vfat utf8,umask=007,gid=46    1
+把最后那个 1 改为 0
+
+#35  安装编译环境
+sudo apt-get install g++ gcc make automake perl
+
+#36  文件批量合并
+cat 'book1.txt' 'book2.txt' > new.txt
+
+#37 解压所有密码为www.topnetmarket.cn的文件到当前目录下
+rar e -pwww.topnetmarket.cn '*.rar'
+
+#38 修改登录背景图，替换这个文件就可以了：
+/usr/share/backgrounds/warty-final-ubuntu.png
+
+#39 Gedit显示中文乱码
+在终端中运行 gconf-editor
+在打开的界面中选择： apps->gedit-2->preferences->encodings
+在右边的auto_detected和 shown_in_menu上点右键编辑，点add，分别加入GB2312(或者是GB18030）,并点 UP按钮移动到第一位。关闭，就可以在gedit中显示中文了
+
+#40 目录递归搜索字符串
+grep "要搜索的字符串" ./ -rn          #参数说明：-r 指递归; -n 指显示行号
+
+#41 克隆virtualbox内的系统/硬盘镜像
+方法一：
+VBoxManage clonevdi 原始VDI文件名 新的VDI文件名
+方法二：直接复制原始VDI文件并另命名，然后手动修改镜像文件的UUID：
+VBoxManage internalcommands sethduuid 另命名的文件
+
+#42 lftp
+登录：lftp topmy@www.freemv.net
+进入相应目录：cd 目录名
+上传:put 文件名 或 mput 文件夹名
+下载：get 文件名 或 mget 文件夹名
+同步本地lfh目录到wwwroot/lfh：
+cd wwwroot && mirr -c -R 本地lfh目录名
+
+#43 ubuntu版本下载地址
+http://releases.ubuntu.com/releases/   ＃ 各种发行版下载目录，
+
+#44 安装 Thunderbird
+sudo apt-get install thunderbird thunderbird-locale-zh-cn
+
+#45 google浏览器字体设置问题，进入以下网站--> 安装
+https://chrome.google.com/webstore/detail/ojlocjfaheiilmgjdgnoehhdigfedhjl#
+
+#46 安装rpm包组件
+sudo apt-get install rpm
+
+#47 安装PPS看网络电视
+axel http://ppa.launchpad.net/portis25/cnav/ubuntu/pool/main/libp/libpps/libpps_0.1.940-0_i386.deb 
+axel http://ppa.launchpad.net/portis25/cnav/ubuntu/pool/main/libp/libppswrapper/libppswrapper_0.0.18.2-0.1_i386.deb  
+axel http://ppa.launchpad.net/portis25/cnav/ubuntu/pool/main/g/gst-plugins-pps/gst-plugins-pps_0.0.18.1+git74cdcda9-0_i386.deb  
+axel http://ppa.launchpad.net/portis25/cnav/ubuntu/pool/main/t/totem-plugin-pps/totem-plugin-pps_0.0.19.6.1-0.3_i386.deb
+sudo dpkg -i libpps_0.1.940-0_i386.deb libppswrapper_0.0.18.2-0.1_i386.deb gst-plugins-pps_0.0.18.1+git74cdcda9-0_i386.deb totem-plugin-pps_0.0.19.6.1-0.3_i386.deb
+
+#48  firefox视频探测工具  netvideohunter
+http://mozilla.com.cn/selections/addon/20/
+
+#49  ubuntu内核下载地址：
+http://kernel.ubuntu.com/~kernel-ppa/mainline/
+
+#50  批量安装字体
+sudo mkdir -p /usr/share/fonts/XP
+sudo cp ／media/Soft/Fonts/* /usr/share/fonts/XP/
+sudo chmod 644 /usr/share/fonts/XP/*
+cd /usr/share/fonts/XP/
+sudo mkfontscale
+sudo mkfontdir
+sudo fc-cache -fv
+
+#51 企业级加密ecryptfs
+sudo apt-get install ecryptfs-utils      #安装ecryptfs包
+mkdir test                               #创建test文件夹用于存放待加密内容
+sudo mount -t ecryptfs test test         #创建密码/挂载进入加密区： =========初次加密目录，须将目录下所有内容移出，挂载后再移入！===========
+#重要说明：只有进入加密区后方可存取数据，否则会反向加密或多重加密
+    # 1 passphrase:（这是要你输入密码，自己编一个。一定要记住。另外密码是不会有任何显示的，输完回车就行）
+    # 2 select cipher:（选择加密方式，不选默认是[aes]。最好记住自己的选择）
+    # 3 select key bytes:（选择加密位数，不选默认是[16]。最好记住自己的选择）
+    # enable plaintext passthrough(y/n) [n]:（是否允许使用明文，默认是 n）
+    # enable filename encryption (y/n) [n]:（是否把文件名也进行加密，默认是 n。如选y，在未解密状态不列出内部文件名）
+    # 是否把密码标识加到/root/.ecryptfs/sig-cache.txt中，免得下次再报警。输入：yes。
+sudo umount -t ecryptfs test             #退出并恢复加密
+
+#52 让命令变简单---别名设置
+alias                      #显示所有别名设置
+alias dir='ls -s'          #设置一个别名,比如：令dir等同于ls -s
+unalias dir                #取消别名
+alias lfh='sudo mount -t ecryptfs '         #运用ecryptfs加密别名1
+alias unlfh='sudo umount -t ecryptfs '      #运用ecryptfs加密别名2
+
+#53 开机启动管理
+sudo apt-get install bum
+sudo bum
+
+#54 超级压缩工具
+sudo apt-get install xz-utils
+
+#55 超强下载工具
+sudo apt-get install aria2
+
+#56 wget镜像网站到本地
+wget -c -mk -np www.hechi.me	或：
+wget -c -e robots=off --tries=0 --timeout=30 --limit-rate=2097152 -U mozilla  -mk -np www.hechi.me
+
+#57 防止被意外删除
+sudo chattr +i 文件/文件夹
+
+#58 创建虚拟磁盘文件
+dd if=/dev/zero of=1G.img bs=1M count=1000   # 创建1G磁盘文件
+/sbin/mkfs.ext4 -b 4096 1G.img               # 格式化为 ext4 文件系统
+sudo mount -o loop 1G.img LFH                # 挂载文件系统到 LFH 目录
+格式化文件系统命令：
+/sbin/mkfs
+/sbin/mkfs.bfs
+/sbin/mkfs.cramfs
+/sbin/mkfs.ext2
+/sbin/mkfs.ext3
+/sbin/mkfs.ext4
+/sbin/mkfs.ext4dev
+/sbin/mkfs.minix
+/sbin/mkfs.msdos
+/sbin/mkfs.ntfs
+/sbin/mkfs.vfat
+
+#59 挂载 FreeBSD 系统 ufs 分区 
+sudo mount -r -t ufs -o ufstype=ufs2 /dev/ufs /media/data
+
+#60 挂载光盘解决乱码问题
+sudo mount -t iso9660 -o iocharset=utf8 /dev/cdrom /cdrom
+
+#61 制作ISO镜像
+mkisofs -J -r -V 卷标名称 -input-charset utf8 -output-charset utf8 -o 文件.iso 目录/文件路径     # -J 可以刻录出windows可以识别的Joliet格式，-r 可以刻录出Unix可以识别 Rock Ridge格式。-V是卷标。
+
+#62 刻录ISO镜像到光盘
+sudo cdrecord -v speed=8 dev=0,0,0 driveropts=burnfree 文件.iso
+
+#63 合并多个视频文件
+mencoder -of lavf -oac mp3lame -lameopts abr:br=24 -ovc copy -o 合成.flv file1.flv file2.flv
+
+#64 批量压制并转换音频为：MP3	 # lame -V0  可设置为(0-9) 0音质最佳 
+for i in *; do base=${i%.*}; mplayer -quiet -vo null -vc dummy -af volume=0,resample=44100:0:1 -ao pcm:waveheader:file="$i.wav" "$i"; lame -V0 -h -b 192 -vbr-new "$i.wav" "$base.mp3"; rm -f "$i.wav"; done  
+
+#65 批量压制并转换DVD为：avi	 # fixed_quant=11  可设置为(1-31) 1画质最佳 
+for i in *.VOB; do mencoder -oac mp3lame -lameopts aq=7:vbr=2:q=6 -srate 44100 -ovc xvid -xvidencopts fixed_quant=11 -of avi $i -o `echo $i | sed -e 's/VOB$/avi/'`; done
+
+#66 批量转换任何格式视频为：ogv		# 不支持rmvb格式
+for i in *; do ffmpeg2theora --optimize --deinterlace $i; done
+
+#67 批量将rmvb格式转为ogv
+#!/bin/bash
+for i in *; do
+   mkfifo "/tmp/$i"
+   mencoder -quiet -vf harddup -ovc raw -oac pcm -o "/tmp/$i" "$i" &
+   ffmpeg2theora --optimize --deinterlace "/tmp/$i" -o "`echo $i | sed 's/\(.*\)\..*$/\1/'`.ogv"
+   rm "/tmp/$i"
+done
+
+#68 递归删除小于5M的文件 
+find ./ -type f -size -5M -exec rm -fr {} \;
+
+#69 递归删除大于1000M的文件 
+find ./ -type f -size +1000M -exec rm -fr {} \;
+
+#70 compiz特效安装与设置
+sudo apt-get install compizconfig-settings-manager
+
+#71 批量重命名工具
+sudo apt-get install pyrenamer
+cd /media/Down/Linux/Ubuntu/soft
+sudo cp pyrenamer.mo /usr/share/locale/zh_CN/LC_MESSAGES
+
+#72 rsync 复制同步镜像并输出进度
+rsync -aP infile outfile
+
+#73 aptitude强制安装软件
+sudo aptitude axel
+
+#74 直观显示文件及目录大小
+du -ah 文件或目录
+
+#75 GIMP去水印工具：滤镜-->增强-->smart...
+sudo apt-get install gimp-resynthesizer
+
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
