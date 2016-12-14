@@ -1,0 +1,6 @@
+GPT硬盘+Bios主板+双系统启动：
+第一步：使用gparted分区工具，在GPT硬盘里增加一个保护分区，只需1-2M，不要格式化。
+第二步：然后在新建的保护分区上右键-->管理标志-->bios_gpt(勾上)
+第三步：将core.img写入保护分区（sda9）：sudo dd if=/boot/grub/core.img of=/dev/sda9
+第四步：重新安装grub2到硬盘：sudo grub­-install­­ --root-­directory=/boot/grub /dev/sda
+第五步：更新Grub启动菜单：sudo update-grub
